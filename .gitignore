@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# myrules
+/DualVectorFoil
+/GuiChu
+/SkyScreen
+/Video
+/GhostWriter
+/pythontest.py
+/ShellPlayer
+/Plogo
