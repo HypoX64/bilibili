@@ -28,9 +28,9 @@ def getfreq(note,PN):
         return 0
     index = 4*7-1 + NOTES.index(PN) + int(note[0]) #1 = C or D.....
     if '+' in note:
-        index += (len(note)-1)+7
+        index += (len(note)-1)*7
     elif '-' in note:
-        index -= (len(note)-1)-7
+        index -= (len(note)-1)*7
     freq = OPS[index]
     return freq
 
@@ -91,7 +91,7 @@ def notations2music(notations, mode = 'sin', isplot = False):
     fs = 44100
     time = 0
 
-    music = np.zeros(int(fs*(len(notations['data'])+1)*interval))
+    music = np.zeros(int(fs*(len(notations['data'])+2)*interval))
 
     for i in range(len(notations['data'])):
         for j in range(len(notations['data'][i])//2):
@@ -127,7 +127,7 @@ def notations2music(notations, mode = 'sin', isplot = False):
 
     return (arrop.sigmoid(music)-0.5)*65536
 
-notations = readscore('./TwinkleTwinkleLittleStar.txt')
+notations = readscore('./music/SchoolBell.txt')
 print(notations)
 # sin triangle square
 music = notations2music(notations,mode='sin',isplot=False)
