@@ -130,6 +130,7 @@ dmypy.json
 
 # myrules
 tmp/
+result/
 /DualVectorFoil
 /GuiChu
 /SkyScreen
@@ -138,3 +139,13 @@ tmp/
 /pythontest.py
 /ShellPlayer
 /Plogo
+/test.py
+
+/PlayMusic/music
+/PlayMusic/test.py
+
+*.mp4
+*.flv
+*.mp3
+*.wav
+*.exe

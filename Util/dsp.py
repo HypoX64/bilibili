@@ -53,10 +53,13 @@ def medfilt(signal,x):
 def cleanoffset(signal):
     return signal - np.mean(signal)
 
-def BPF_FIR(signal,fs,fc1,fc2,numtaps=101):
-    b=scipy.signal.firwin(numtaps, [fc1, fc2], pass_zero=False,fs=fs)
-    result = scipy.signal.lfilter(b, 1, signal)
-    return result
+def bpf(signal, fs, fc1, fc2, numtaps=3, mode='iir'):
+    if mode == 'iir':
+        b,a = scipy.signal.iirfilter(numtaps, [fc1,fc2], fs=fs)
+    elif mode == 'fir':
+        b = scipy.signal.firwin(numtaps, [fc1, fc2], pass_zero=False,fs=fs)
+        a = 1       
+    return scipy.signal.lfilter(b, a, signal)
 
 def fft_filter(signal,fs,fc=[],type = 'bandpass'):
     '''
@@ -105,6 +108,9 @@ def basefreq(signal,fs,fc=0):
             return i/(length/fs)
 
 def showfreq(signal,fs,fc=0):
+    """
+    return f,fft
+    """
     if fc==0:
         kc = int(len(signal)/2)
     else:   

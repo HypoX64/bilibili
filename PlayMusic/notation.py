@@ -25,21 +25,22 @@ for i in range(10):
 
 def getfreq(note,PN):
     if note[0] == '-':
-        return 0
+        return 0,1
     index = 4*7-1 + NOTES.index(PN) + int(note[0]) #1 = C or D.....
     if '+' in note:
         index += (len(note)-1)*7
     elif '-' in note:
         index -= (len(note)-1)*7
     freq = OPS[index]
-    return freq
+    timescale = np.clip(1/(1.08**(index-33)),0,4.0)
+    return freq,timescale
 
 def wave(f, fs, time, mode='sin'):
     length = int(fs*time)
     signal = dsp.wave(f, fs, time, mode)
     weight = np.zeros(length)
     weight[0:length//10] = np.hanning(length//10*2)[0:length//10]
-    weight[length//10:] = np.hanning(int(length*0.9*2))[int(length*0.9):]
+    weight[length//10:] = np.hanning(int(length*0.9*2))[-(length-length//10):]
     return signal*weight
 
 
@@ -79,7 +80,12 @@ def readscore(path):
         elif i == 3:
             notations['PNLT'] = float(line)
         else:
-            notations['data'].append(line.split(','))
+            if len(line)>2:
+                beat = line.split(';')
+                part = []
+                for i in range(len(beat)):
+                    part.append(beat[i].split('|'))
+                notations['data'].append(part)
     return notations
 
 
@@ -91,47 +97,67 @@ def notations2music(notations, mode = 'sin', isplot = False):
     fs = 44100
     time = 0
 
-    music = np.zeros(int(fs*(len(notations['data'])+2)*interval))
+    music = np.zeros(int(fs*(len(notations['data'])+8)*interval))
 
-    for i in range(len(notations['data'])):
-        for j in range(len(notations['data'][i])//2):
-            freq = getfreq(notations['data'][i][j*2],notations['PN'])
-            if freq != 0:
-                music[int(time*fs):int(time*fs)+int(PNLT*fs)] += getstrength(i,BN,wave(freq, fs, PNLT, mode = mode))
+    for section in range(len(notations['data'])):
+        for beat in range(len(notations['data'][section])):
+
+            _music = np.zeros(int(fs*PNLT*4))
+            for part in range(len(notations['data'][section][beat])):
+                _note = notations['data'][section][beat][part].split(',')[0]
+                freq,timescale = getfreq(_note,notations['PN'])
+                # print(timescale)
+                if freq != 0:
+                    # print(len(_music[:int(PNLT*timescale*fs)]))
+                    # print(len(wave(freq, fs, PNLT*timescale, mode = mode)))
+                    _music[:int(PNLT*timescale*fs)] += wave(freq, fs, PNLT*timescale, mode = mode)
+                # print(notations['data'][section][beat][part])
+
+            music[int(time*fs):int(time*fs)+int(PNLT*fs*4)] += _music
+            time += float(notations['data'][section][beat][0].split(',')[1])*interval
+    # for i in range(len(notations['data'])):
+    #     for j in range(len(notations['data'][i])//2):
+    #         freq = getfreq(notations['data'][i][j*2],notations['PN'])
+    #         if freq != 0:
+    #             music[int(time*fs):int(time*fs)+int(PNLT*fs)] += wave(freq, fs, PNLT, mode = mode)
+                # music[int(time*fs):int(time*fs)+int(PNLT*fs)] += getstrength(i,BN,wave(freq, fs, PNLT, mode = mode))
             
-            if isplot:
-                plot_data = music[int(time*fs):int(time*fs)+int(PNLT*fs)]
-                plt.clf()
-                plt.subplot(221)
-                plt.plot(np.linspace(0, len(plot_data)/fs,len(plot_data)),plot_data)
-                plt.title('Current audio waveform')
-                plt.xlabel('Time')
-                plt.ylim((-1.5,1.5))
+            # if isplot:
+            #     plot_data = music[int(time*fs):int(time*fs)+int(PNLT*fs)]
+            #     plt.clf()
+            #     plt.subplot(221)
+            #     plt.plot(np.linspace(0, len(plot_data)/fs,len(plot_data)),plot_data)
+            #     plt.title('Current audio waveform')
+            #     plt.xlabel('Time')
+            #     plt.ylim((-1.5,1.5))
 
-                plt.subplot(222)
-                _plot_data = plot_data[int(len(plot_data)*0.2):int(len(plot_data)*0.25)]
-                plt.plot(np.linspace(0, len(_plot_data)/fs,len(_plot_data)),_plot_data)
-                plt.title('Partial audio waveform')
-                plt.xlabel('Time')
-                plt.ylim((-1.5,1.5))
+            #     plt.subplot(222)
+            #     _plot_data = plot_data[int(len(plot_data)*0.2):int(len(plot_data)*0.25)]
+            #     plt.plot(np.linspace(0, len(_plot_data)/fs,len(_plot_data)),_plot_data)
+            #     plt.title('Partial audio waveform')
+            #     plt.xlabel('Time')
+            #     plt.ylim((-1.5,1.5))
 
-                plt.subplot(223)
-                f,k = dsp.showfreq(plot_data, 44100, 2000)
-                plt.plot(f,k)
-                plt.title('FFT')
-                plt.xlabel('Hz')
-                plt.ylim((-1000,10000))
-                plt.pause(interval-0.125)
+            #     plt.subplot(223)
+            #     f,k = dsp.showfreq(plot_data, 44100, 2000)
+            #     plt.plot(f,k)
+            #     plt.title('FFT')
+            #     plt.xlabel('Hz')
+            #     plt.ylim((-1000,10000))
+            #     plt.pause(interval-0.125)
 
-            time += float(notations['data'][i][j*2+1])*interval
+            #time += float(notations['data'][i][j*2+1])*interval
 
     return (arrop.sigmoid(music)-0.5)*65536
 
 notations = readscore('./music/SchoolBell.txt')
 print(notations)
+print(len(notations['data']))
 # sin triangle square
 music = notations2music(notations,mode='sin',isplot=False)
-import threading
-t=threading.Thread(target=sound.playtest,args=(music,))
-t.start()
-music = notations2music(notations,mode='sin',isplot=True)
+sound.playtest(music)
+
+# import threading
+# t=threading.Thread(target=sound.playtest,args=(music,))
+# t.start()
+#music = notations2music(notations,mode='sin',isplot=True)
