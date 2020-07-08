@@ -144,6 +144,8 @@ result/
 /PlayMusic/music
 /PlayMusic/test.py
 
+/OneImage2Video/pixel_imgs/university
+
 *.mp4
 *.flv
 *.mp3

@@ -43,7 +43,7 @@ pixels = []
 pixel_paths = os.listdir(pixel_imgs_dir)
 pixel_paths.sort()
 if inverse:
- pixel_paths.reverse()
+    pixel_paths.reverse()
 for path in pixel_paths:
     pixel = cv2.imread(os.path.join(pixel_imgs_dir,path))
     if pixel_imgs_resize != 0:
@@ -60,11 +60,11 @@ print(pixels[0].shape)
 fps,endtime,height,width = ffmpeg.get_video_infos(video_path)
 scale = height/width
 
-# util.clean_tempfiles(False)
-# util.makedirs('./tmp/vid2img')
-# util.makedirs('./tmp/output_img')
-# ffmpeg.video2image(video_path, './tmp/vid2img/%05d.png')
-# ffmpeg.video2voice(video_path, './tmp/tmp.mp3')
+util.clean_tempfiles(False)
+util.makedirs('./tmp/vid2img')
+util.makedirs('./tmp/output_img')
+ffmpeg.video2image(video_path, './tmp/vid2img/%05d.png')
+ffmpeg.video2voice(video_path, './tmp/tmp.mp3')
 
 # ------------------------- Video2Block -------------------------
 print('Video2Block...')
