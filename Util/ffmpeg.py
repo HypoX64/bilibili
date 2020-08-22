@@ -27,31 +27,36 @@ def run(args,mode = 0):
         return sout
 
     elif mode == 2:
-        p = subprocess.Popen(args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = args2cmd(args)
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         sout = p.stdout.readlines()
         return sout
 
 
-def video2image(videopath, imagepath, fps=0, start_time=0, last_time=0):
+def video2image(videopath, imagepath, fps=0, start_time='00:00:00', last_time='00:00:00'):
     args = ['ffmpeg', '-i', '"'+videopath+'"']
-    if last_time!=0:
+    if last_time != '00:00:00':
         args += ['-ss', start_time]
         args += ['-t', last_time]
     if fps != 0:
-        args += ['-r', fps]
+        args += ['-r', str(fps)]
     args += ['-f', 'image2','-q:v','-0',imagepath]
     run(args)
         
-def video2voice(videopath,voicepath,samplingrate=0):
-    args = ['ffmpeg', '-i', '"'+videopath+'"']
-    if samplingrate != 0:
-        args += ['-ar', str(samplingrate)]
+def video2voice(videopath, voicepath, start_time='00:00:00', last_time='00:00:00'):
+    args = ['ffmpeg', '-i', '"'+videopath+'"','-f mp3','-b:a 320k']
+    if last_time != '00:00:00':
+        args += ['-ss', start_time]
+        args += ['-t', last_time]
     args += [voicepath]
     run(args)
 
 def image2video(fps,imagepath,voicepath,videopath):
-    os.system('ffmpeg -y -r '+str(fps)+' -i '+imagepath+' -vcodec libx264 '+'./tmp/video_tmp.mp4')
-    os.system('ffmpeg -i ./tmp/video_tmp.mp4 -i "'+voicepath+'" -vcodec copy -acodec aac '+videopath)
+    if voicepath != None:
+        os.system('ffmpeg -y -r '+str(fps)+' -i '+imagepath+' -vcodec libx264 '+'./tmp/video_tmp.mp4')
+        os.system('ffmpeg -i ./tmp/video_tmp.mp4 -i "'+voicepath+'" -vcodec copy -acodec aac '+videopath)
+    else:
+        os.system('ffmpeg -y -r '+str(fps)+' -i '+imagepath+' -vcodec libx264 '+videopath)
 
 def get_video_infos(videopath):
     args =  ['ffprobe -v quiet -print_format json -show_format -show_streams', '-i', '"'+videopath+'"']

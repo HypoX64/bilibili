@@ -146,6 +146,10 @@ result/
 
 /OneImage2Video/pixel_imgs/university
 
+/NikeMouth/media
+/NikeMouth/test_media
+/NikeMouth/test.py
+
 *.mp4
 *.flv
 *.mp3
